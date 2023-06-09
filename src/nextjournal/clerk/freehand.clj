@@ -16,12 +16,13 @@
               (assoc :svg (slurp path))))))
    :render-fn 'nextjournal.clerk.freehand/svg-drawing})
 
+(clerk/eval-cljs-str (slurp (io/resource "nextjournal/clerk/freehand.cljs")))
+
 (defn drawing
   ([path] (drawing path {}))
   ([path opts]
-   (clerk/eval-cljs-str (slurp (io/resource "nextjournal/clerk/freehand.cljs")))
    (clerk/with-viewer viewer {::clerk/width :full}
-                 (assoc opts :path path))))
+     (assoc opts :path path))))
 
 {::clerk/visibility {:result :show}}
 (drawing "data/first_drawing.svg")

@@ -1,7 +1,5 @@
-{:deps
- {io.github.nextjournal/clerk {:git/url "edd0c2fc22bd0207cc8d3762f00f239ce63ee87f" #_#_ :local/root "../clerk"}
-  org.clojure/clojure {:mvn/version "1.11.1"}
-  applied-science/js-interop {:mvn/version "0.3.3"}
-  org.clojure/clojurescript {:mvn/version "1.11.60"}}
+{:paths ["src"]
+ :deps
+ {io.github.nextjournal/clerk {:git/sha "1938176f12684e4cbfe0ca6e5a5257a7e1cc97bf"}}
  :aliases
  {:dev {:extra-paths ["notebooks"]}}}
