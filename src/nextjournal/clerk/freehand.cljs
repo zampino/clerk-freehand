@@ -26,9 +26,9 @@
                                    :paths (or paths [])
                                    :pen-down false})
 
-(defn update-trace [{:as state :keys [trace]} get-stroke ^js e {:keys [bcr-x bcr-y]}]
-  (let [new-trace (.concat trace (j/lit [[(- (.-pageX e) bcr-x)
-                                          (- (.-pageY e) bcr-y)
+(defn update-trace [{:as state :keys [trace]} get-stroke ^js e ^js bcr]
+  (let [new-trace (.concat trace (j/lit [[(- (.-pageX e) (.-left bcr))
+                                          (- (.-pageY e) (.-top bcr))
                                           (.-pressure e)]]))]
     (-> state
         (assoc :trace new-trace)
@@ -42,20 +42,16 @@
 
 (defn pf-svg-drawing [PF {:as opts :keys [file]}]
   (let [!state (render.hooks/use-state (new-state opts))
-
-        pf-opts (j/obj :size 6 :thinning 0.5 :smoothing 0.8 :streamline 0.9)
+        pf-opts (j/obj :size 6 :thinning 0.5 :smoothing 0.9 :streamline 0.9
+                       :simulatePressure false)
         get-stroke (fn [pressure-points] (.getStroke PF pressure-points pf-opts))
         ref (render.hooks/use-ref)
-        get-bcr (fn [el] (when el
-                           (let [bcr (.getBoundingClientRect el)]
-                             {:bcr-x (.-left bcr)
-                              :bcr-y (.-top bcr)})))
+        pointer-down (fn [_] (swap! !state assoc :pen-down true))
+        pointer-up (fn [_] (swap! !state add-path opts))
         pointer-move (fn [e]
                        (let [{:keys [pen-down]} @!state]
                          (when pen-down
-                           (swap! !state update-trace get-stroke e (get-bcr @ref)))))
-        pointer-down (fn [_] (swap! !state assoc :pen-down true))
-        pointer-up (fn [_] (swap! !state add-path opts))]
+                           (swap! !state update-trace get-stroke e (.getBoundingClientRect @ref)))))]
     (let [{:keys [path paths]} @!state]
       [:div.flex
        [:div [:button.border-2.rounded.border-amber-500
