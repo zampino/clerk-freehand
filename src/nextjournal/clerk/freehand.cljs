@@ -34,7 +34,13 @@
         (assoc :trace new-trace)
         (assoc :path (get-stroke new-trace)))))
 
-  (defn pf-svg-drawing [PF {:as opts :keys [file]}]
+(defn add-path [{:as state :keys [path]} {:keys [file]}]
+  (-> state
+      (update :paths conj (:path state))
+      (assoc :trace (j/lit []) :pen-down false :path (j/lit []))
+      (doto (store! file))))
+
+(defn pf-svg-drawing [PF {:as opts :keys [file]}]
   (let [!state (render.hooks/use-state (new-state opts))
 
         pf-opts (j/obj :size 6 :thinning 0.5 :smoothing 0.8 :streamline 0.9)
@@ -49,13 +55,7 @@
                          (when pen-down
                            (swap! !state update-trace get-stroke e (get-bcr @ref)))))
         pointer-down (fn [_] (swap! !state assoc :pen-down true))
-        pointer-up (fn [_]
-                     (swap! !state (fn [s] (-> s
-                                               (assoc :pen-down false)
-                                               (update :paths conj (:path s))
-                                               (assoc :path (j/lit []))
-                                               (assoc :trace (j/lit []))
-                                               (doto (store! file))))))]
+        pointer-up (fn [_] (swap! !state add-path opts))]
     (let [{:keys [path paths]} @!state]
       [:div.flex
        [:div [:button.border-2.rounded.border-amber-500
