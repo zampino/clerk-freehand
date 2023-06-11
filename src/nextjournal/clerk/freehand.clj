@@ -33,4 +33,4 @@
      (assoc opts :file file))))
 
 {::clerk/visibility {:result :show}}
-(drawing "data/drawing.edn")
+(drawing "data/drawing-2.edn")
