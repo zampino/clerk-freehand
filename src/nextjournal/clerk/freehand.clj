@@ -17,20 +17,24 @@
               (merge (edn/read-string (slurp file)))))))
    :render-fn 'nextjournal.clerk.freehand/svg-drawing})
 
-(clerk/eval-cljs-str (slurp (io/resource "nextjournal/clerk/freehand.cljs")))
-
 (defn store! [{:as info :keys [file]}]
   (spit file (pr-str (dissoc info :file))))
 
 (defn clear! [{:keys [file]}]
   (fs/delete-if-exists file))
 
-(defn drawing
-  ([file] (drawing file {}))
-  ([file opts]
+(defmacro drawing
+  ([file] `(drawing {} ~file))
+  ([opts file]
    (fs/create-dirs (fs/parent file))
-   (clerk/with-viewer viewer {::clerk/width :full}
-     (assoc opts :file file))))
+   `(clerk/fragment
+
+     (assoc-in
+      ;; hack for hiding results in a fragment
+      (clerk/eval-cljs-str (slurp (io/resource "nextjournal/clerk/freehand.cljs")))
+      [:nextjournal/viewer :render-fn] '(fn [_ _] [:<>]))
+
+     (clerk/with-viewer viewer ~opts (assoc ~opts :file ~file)))))
 
 {::clerk/visibility {:result :show}}
-(drawing "data/drawing-2.edn")
+(drawing {::clerk/widthx :full} "data/drawing.edn")
